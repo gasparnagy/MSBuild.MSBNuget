@@ -41,7 +41,6 @@
     <NugetBuildTargets>
       NugetCommandLineEval;
       NugetCleanupFolderStructure;
-      NugetCreateFolderStructure;
       NugetCopyAdditionalFiles;
       NugetCopyNuspec;
       NugetCreatePackage;
@@ -126,14 +125,6 @@
     <CallTarget Targets="$(NugetBuildTargets)" />
   </Target>
 
-  <Target Name="NugetCreateFolderStructure">
-    <!-- Ensure nuget Folder structure exists -->
-    <MakeDir Directories="$(NugetStage)%(nuspec.Filename)\lib" Condition="'$(NugetFilterOnlyConventionWellKnownFolders)' == 'true'" />
-    <MakeDir Directories="$(NugetStage)%(nuspec.Filename)\tools" Condition="'$(NugetFilterOnlyConventionWellKnownFolders)' == 'true'"/>
-    <MakeDir Directories="$(NugetStage)%(nuspec.Filename)\content" Condition="'$(NugetFilterOnlyConventionWellKnownFolders)' == 'true'"/>
-    <MakeDir Directories="$(NugetStage)%(nuspec.Filename)\build" Condition="'$(NugetFilterOnlyConventionWellKnownFolders)' == 'true'"/>
-  </Target>
-
   <Target Name="NugetCopyAdditionalFiles">
     <!-- nuget convention based folder structure includes -->
     <ItemGroup Condition="'$(NugetFilterOnlyConventionWellKnownFolders)' == 'true'">
@@ -185,7 +176,6 @@
       <files Include="$(NugetStage)"/>
       <!-- intermediate files -->
       <files Include="$(NugetIntermediatePath)" />
-
       <folders Include="%(files.RelativeDir)" />
     </ItemGroup>
 
