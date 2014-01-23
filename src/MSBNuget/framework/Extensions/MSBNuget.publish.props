@@ -16,33 +16,20 @@
   along with this program.  If not, see [http://www.gnu.org/licenses/].
   -->
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
-
-  <!-- Import legacy wrapper and warnings first! -->
-  <Import Project="warnings\MSBNuget.Legacy.100.targets" />
-
-  <!-- Import custom global build.props from C# Properties folder-->
-  <Import Project="$(MSBuildProjectDirectory)\Properties\MSBNuget.props" Condition="Exists('$(MSBuildProjectDirectory)\Properties\MSBNuget.props')=='true'" />
   
-  <Import Project="framework\MSBNuget.build.targets" />
-
-  <!-- add MSBuild.MSBBuildConvention build chain-->
   <PropertyGroup>
-    <BuildTargets>
-      $(BuildTargets);
-      NugetBuild;
-    </BuildTargets>
-    <CleanTargets>
-      $(CleanTargets);
-      NugetClean;
-    </CleanTargets>
-    <RebuildTargets>
-      $(RebuildTargets);
-      NugetRebuild;
-    </RebuildTargets>
-    <PublishTargets>
-      $(PublishTargets);
-      NugetPublish;
-    </PublishTargets>
-  </PropertyGroup>
+    <!-- Global override to disable all publish mechanism-->
+    <NugetPublishDisabled Condition="'$(NugetPublishDisabled)' == ''">false</NugetPublishDisabled>
+    
+    
+    <NugetPublishToReleaseFolder Condition="'$(NugetPublishToReleaseFolder)'==''">true</NugetPublishToReleaseFolder>
+    <NugetPublishReleaseFolder Condition="'$(NugetPublishReleaseFolder)'==''">$(NugetIntermediatePath)Release\</NugetPublishReleaseFolder>
 
+    <NugetPublishLocalNugetFeedFolder Condition="'$(NugetPublishLocalNugetFeedFolder)'==''">$(NugetIntermediatePath)Publish\</NugetPublishLocalNugetFeedFolder>
+    <NugetPublishToLocalNugetFeed Condition="'$(NugetPublishToLocalNugetFeed)'==''">true</NugetPublishToLocalNugetFeed>
+    
+    
+    <NugetPublishToOfficialNugetFeed Condition="'$(NugetPublishToOfficialNugetFeed)' == ''">false</NugetPublishToOfficialNugetFeed>
+  </PropertyGroup>
+  
 </Project>

@@ -17,32 +17,15 @@
   -->
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
 
-  <!-- Import legacy wrapper and warnings first! -->
-  <Import Project="warnings\MSBNuget.Legacy.100.targets" />
-
-  <!-- Import custom global build.props from C# Properties folder-->
-  <Import Project="$(MSBuildProjectDirectory)\Properties\MSBNuget.props" Condition="Exists('$(MSBuildProjectDirectory)\Properties\MSBNuget.props')=='true'" />
-  
-  <Import Project="framework\MSBNuget.build.targets" />
-
-  <!-- add MSBuild.MSBBuildConvention build chain-->
+  <!-- Expected project properties, if not set define defaults -->
   <PropertyGroup>
-    <BuildTargets>
-      $(BuildTargets);
-      NugetBuild;
-    </BuildTargets>
-    <CleanTargets>
-      $(CleanTargets);
-      NugetClean;
-    </CleanTargets>
-    <RebuildTargets>
-      $(RebuildTargets);
-      NugetRebuild;
-    </RebuildTargets>
-    <PublishTargets>
-      $(PublishTargets);
-      NugetPublish;
-    </PublishTargets>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputPath Condition="'$(OutputPath)' == ''">bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <msb-NugetExe>nuget.exe</msb-NugetExe>
+  </PropertyGroup>
+  
 </Project>

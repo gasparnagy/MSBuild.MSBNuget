@@ -17,32 +17,10 @@
   -->
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
 
-  <!-- Import legacy wrapper and warnings first! -->
-  <Import Project="warnings\MSBNuget.Legacy.100.targets" />
-
-  <!-- Import custom global build.props from C# Properties folder-->
-  <Import Project="$(MSBuildProjectDirectory)\Properties\MSBNuget.props" Condition="Exists('$(MSBuildProjectDirectory)\Properties\MSBNuget.props')=='true'" />
-  
-  <Import Project="framework\MSBNuget.build.targets" />
-
-  <!-- add MSBuild.MSBBuildConvention build chain-->
   <PropertyGroup>
-    <BuildTargets>
-      $(BuildTargets);
-      NugetBuild;
-    </BuildTargets>
-    <CleanTargets>
-      $(CleanTargets);
-      NugetClean;
-    </CleanTargets>
-    <RebuildTargets>
-      $(RebuildTargets);
-      NugetRebuild;
-    </RebuildTargets>
-    <PublishTargets>
-      $(PublishTargets);
-      NugetPublish;
-    </PublishTargets>
+    <NugetVersion Condition="'$(NugetVersion)' == ''"></NugetVersion>
+    <NugetMinClientVersion Condition="'$(NugetMinClientVersion)' == ''"></NugetMinClientVersion>
+    <NugetCommandPackArguments Condition="'$(NugetCommandPackArguments)' == ''"></NugetCommandPackArguments>
   </PropertyGroup>
 
 </Project>
