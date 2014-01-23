@@ -23,9 +23,9 @@
     
     
     <NugetPublishToReleaseFolder Condition="'$(NugetPublishToReleaseFolder)'==''">true</NugetPublishToReleaseFolder>
-    <NugetPublishReleaseFolder Condition="'$(NugetPublishReleaseFolder)'==''">$(NugetIntermediatePath)Release\</NugetPublishReleaseFolder>
+    <NugetPublishReleaseFolder Condition="'$(NugetPublishReleaseFolder)'==''">$(msb-OutputPath)Release\</NugetPublishReleaseFolder>
 
-    <NugetPublishLocalNugetFeedFolder Condition="'$(NugetPublishLocalNugetFeedFolder)'==''">$(NugetIntermediatePath)Publish\</NugetPublishLocalNugetFeedFolder>
+    <NugetPublishLocalNugetFeedFolder Condition="'$(NugetPublishLocalNugetFeedFolder)'==''">$(msb-OutputPath)Publish\</NugetPublishLocalNugetFeedFolder>
     <NugetPublishToLocalNugetFeed Condition="'$(NugetPublishToLocalNugetFeed)'==''">true</NugetPublishToLocalNugetFeed>
     
     

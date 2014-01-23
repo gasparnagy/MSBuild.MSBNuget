@@ -27,7 +27,7 @@
   
   <Target Name="NugetPublishToReleaseFolder">
     <ItemGroup>
-      <nupkg Include="$(NugetIntermediatePath)**\*.nupkg"/>
+      <nupkg Include="$(msb-OutputPath)**\*.nupkg"/>
     </ItemGroup>
 
     <MakeDir Directories="$(NugetPublishReleaseFolder)" />
@@ -42,7 +42,7 @@
   
   <Target Name="NugetPublishToLocalFeed">
     <ItemGroup>
-      <nupkg Include="$(NugetIntermediatePath)**\*.nupkg"/>
+      <nupkg Include="$(msb-OutputPath)**\*.nupkg"/>
     </ItemGroup>
 
     <MakeDir Directories="$(NugetPublishLocalNugetFeedFolder)" />
@@ -57,7 +57,7 @@
   
   <Target Name="NugetPublishToOfficialNugetFeed">
     <ItemGroup>
-      <nupkg Include="$(NugetIntermediatePath)**\*.nupkg"/>
+      <nupkg Include="$(msb-OutputPath)**\*.nupkg"/>
     </ItemGroup>
 
     <Exec Command="&quot;@(nugetExe)&quot; push %(nupkg.Identity)" ContinueOnError="true" />

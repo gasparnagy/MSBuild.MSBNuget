@@ -16,46 +16,48 @@
   along with this program.  If not, see [http://www.gnu.org/licenses/].
   -->
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
-  
-  
-  <!-- Internal working properties, they are not intended to be changed direclty from caller -->
-  <PropertyGroup Label="Internal default property values">
-    
-    <NugetIntermediatePath Condition="'$(NugetIntermediatePath)' == ''">$(OutputPath)</NugetIntermediatePath>
-    <!-- TFS 2010/2012 support of OutDir overwrite -->
-    <NugetIntermediatePath Condition="'$(OutDir)' != ''">$(OutDir)\$(Configuration)\NugetPackages\</NugetIntermediatePath>
 
-    <NugetStage>$(MSBuildProjectDirectory)\obj\$(Configuration)\nugetstage\</NugetStage>
-    
+
+  <!-- Internal working properties, they are not intended to be changed direclty from caller -->
+  <PropertyGroup>
+    <msb-NugetStage Condition="'$(msb-NugetStage)'==''">$(MSBuildProjectDirectory)\obj\$(Configuration)\nugetstage\</msb-NugetStage>
+
+    <msb-OutputPath Condition="'$(msb-OutputPath)'==''">$(OutputPath)</msb-OutputPath>
+    <!-- TFS 2010/2012 support of OutDir overwrite -->
+    <msb-OutputPath Condition="'$(OutDir)' != ''">$(OutDir)\$(Configuration)\NugetPackages\</msb-OutputPath>
+
     <!-- Filter out all folders which are not known by convention -->
     <NugetFilterOnlyConventionWellKnownFolders Condition="'$(NugetFilterOnlyConventionWellKnownFolders)' == ''">true</NugetFilterOnlyConventionWellKnownFolders>
     <!-- Filter to not include *.nuspec files from packages/; obj/; bin/-->
     <NugetNuspecExcludePattern Condition="'$(NugetNuspecExcludePattern)' == ''">$(MSBuildProjectDirectory)\packages\**;$(MSBuildProjectDirectory)\bin\**;$(MSBuildProjectDirectory)\obj\**;</NugetNuspecExcludePattern>
 
     <NugetBuildTargets>
-      NugetCommandLineEval;
       NugetCleanupFolderStructure;
-      NugetCopyAdditionalFiles;
       NugetCopyNuspec;
+      NugetCopyAdditionalFiles;
       NugetCreatePackage;
     </NugetBuildTargets>
+    <NugetFileHarvestTargets>
+      Harvest_AdditionalFiles_From_WellKnownFoldersInFilesystem;
+      Harvest_AdditionalFiles_From_Filesystem;
+    </NugetFileHarvestTargets>
   </PropertyGroup>
 
-  
+
   <ItemGroup>
     <!-- List of *.nuspec files which should be transformed -->
     <nuspec Include="$(MSBuildProjectDirectory)\**\*.nuspec"
             Exclude="$(NugetNuspecExcludePattern)"/>
   </ItemGroup>
 
-
   <Target Name="NugetCreatePackages">
     <CallTarget Targets="$(NugetBuildTargets)" />
   </Target>
 
-  <Target Name="NugetCopyAdditionalFiles">
+  
+  <Target Name="Harvest_AdditionalFiles_From_WellKnownFoldersInFilesystem" Condition="'$(NugetFilterOnlyConventionWellKnownFolders)' == 'true'">
     <!-- nuget convention based folder structure includes -->
-    <ItemGroup Condition="'$(NugetFilterOnlyConventionWellKnownFolders)' == 'true'">
+    <ItemGroup>
       <additionalFiles Include="$(MSBuildProjectDirectory)\%(nuspec.Filename)\tools\**\*.*">
         <targetFolder>%(nuspec.Filename)\tools</targetFolder>
       </additionalFiles>
@@ -69,60 +71,56 @@
         <targetFolder>%(nuspec.Filename)\lib</targetFolder>
       </additionalFiles>
     </ItemGroup>
-    
-    <ItemGroup Condition="'$(NugetFilterOnlyConventionWellKnownFolders)' == 'false'">
+  </Target>
+
+  <Target Name="Harvest_AdditionalFiles_From_Filesystem" Condition="'$(NugetFilterOnlyConventionWellKnownFolders)' == 'false'">
+    <!-- all folders under nuspec files-->
+    <ItemGroup>
       <additionalFiles Include="$(MSBuildProjectDirectory)\%(nuspec.Filename)\**\*.*" Exclude="$(MSBuildProjectDirectory)\%(nuspec.Filename)\%(nuspec.Filename)%(nuspec.Extension).props">
         <targetFolder>%(nuspec.Filename)</targetFolder>
       </additionalFiles>
     </ItemGroup>
+  </Target>
+
+  
+  
+  <Target Name="NugetCopyAdditionalFiles"
+          DependsOnTargets="$(NugetFileHarvestTargets)">
 
     <!-- try to evaluate 'physical path' if OutDir is present -->
     <ItemGroup>
-      <!-- TFS 2010/2012 workaround for OutDir -->
       <_filesToCopy Include="@(additionalFiles)" Condition="Exists('%(additionalFiles.Identity)') == 'true'">
         <sourceFolder>%(additionalFiles.FullPath)</sourceFolder>
-        <destinationFolder>$(NugetStage)%(additionalFiles.targetFolder)\%(additionalFiles.RecursiveDir)</destinationFolder>
+        <destinationFolder>$(msb-NugetStage)%(additionalFiles.targetFolder)\%(additionalFiles.RecursiveDir)</destinationFolder>
       </_filesToCopy>
 
+      <!-- TFS 2010/2012/2013 workaround for OutDir -->
+      <!-- binaries will be copied to OutDir if configuration in TFS is set to: SingleFolder -->
       <_filesToCopy Include="@(additionalFiles)" Condition="'$(OutDir)' != '' AND Exists('%(additionalFiles.Identity)') == 'false'">
         <sourceFolder>$(OutDir)%(additionalFiles.Filename)%(additionalFiles.Extension)</sourceFolder>
-        <destinationFolder>$(NugetStage)%(additionalFiles.targetFolder)\%(additionalFiles.RecursiveDir)</destinationFolder>
+        <destinationFolder>$(msb-NugetStage)%(additionalFiles.targetFolder)\%(additionalFiles.RecursiveDir)</destinationFolder>
       </_filesToCopy>
     </ItemGroup>
 
-    <Message Importance="normal" Text="File: %(_filesToCopy.Filename)%(_filesToCopy.Extension)%0D%0A identity: %(_filesToCopy.Identity)%0D%0A source: %(_filesToCopy.sourceFolder)%0D%0A destination: %(_filesToCopy.destinationFolder)" />
+    <Message Importance="high" 
+             Text="File: %(_filesToCopy.Filename)%(_filesToCopy.Extension)%0D%0A identity: %(_filesToCopy.Identity)%0D%0A source: %(_filesToCopy.sourceFolder)%0D%0A destination: %(_filesToCopy.destinationFolder)" />
 
     <Copy SourceFiles="%(_filesToCopy.sourceFolder)"
           DestinationFolder="%(_filesToCopy.destinationFolder)"
           OverwriteReadOnlyFiles="true" ContinueOnError="true" />
   </Target>
 
-  <Target Name="NugetCleanupFolderStructure">
-
-    <ItemGroup>
-      <!-- staged files-->
-      <files Include="$(NugetStage)"/>
-      <!-- intermediate files -->
-      <files Include="$(NugetIntermediatePath)" />
-      <folders Include="%(files.RelativeDir)" />
-    </ItemGroup>
-
-    <Message Text="@(files)" />
-    <Message Text="@(folders)" />
-
-    <Delete Files="@(files)" />
-    <RemoveDir Directories="@(folders)" ContinueOnError="true" />
-  </Target>
 
   <Target Name="NugetCopyNuspec">
     <Copy SourceFiles="@(nuspec)"
-          DestinationFolder="$(NugetStage)%(nuspec.Filename)"
+          DestinationFolder="$(msb-NugetStage)%(nuspec.Filename)"
           OverwriteReadOnlyFiles="true" ContinueOnError="true"/>
   </Target>
 
+  
   <Target Name="NugetCreatePackage" >
     <ItemGroup>
-      <nuspecStaged Include="$(NugetStage)%(nuspec.Filename)\*.nuspec"/>
+      <nuspecStaged Include="$(msb-NugetStage)%(nuspec.Filename)\*.nuspec"/>
     </ItemGroup>
 
     <Message Text="Nuget Global Override" Importance="normal"/>
@@ -134,10 +132,27 @@
     <Message Text="nuspecs: @(nuspecStaged)" Importance="normal"/>
     <Message Text="  %(nuspecStaged.Identity)" Importance="normal" />
 
-    <MakeDir Directories="$(NugetIntermediatePath)" />
+    <MakeDir Directories="$(msb-OutputPath)" />
 
     <Exec Command="$(msb-NugetExe) &quot;%(nuspecStaged.Identity)&quot;" Condition="'%(nuspecStaged.Identity)' != ''"/>
   </Target>
 
+  
+  
+
+  <Target Name="NugetCleanupFolderStructure">
+
+    <ItemGroup>
+      <filesToDelete Include="$(msb-NugetStage)"/>
+      <filesToDelete Include="$(msb-OutputPath)" />
+      <foldersToDelete Include="%(filesToDelete.RelativeDir)" />
+    </ItemGroup>
+
+    <Message Text=">> filesToDelete:   @(filesToDelete)" Importance="low" />
+    <Message Text=">> foldersToDelete: @(foldersToDelete)" Importance="low" />
+
+    <Delete Files="@(filesToDelete)" />
+    <RemoveDir Directories="@(foldersToDelete)" ContinueOnError="true" />
+  </Target>
 
 </Project>
